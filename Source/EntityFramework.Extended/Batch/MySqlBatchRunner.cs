@@ -103,7 +103,7 @@ namespace EntityFramework.Batch
                 sqlBuilder.Append("DELETE j0");
                 sqlBuilder.AppendLine();
 
-                sqlBuilder.AppendFormat("FROM {0} AS j0 INNER JOIN (", entityMap.TableName);
+                sqlBuilder.AppendFormat("FROM {0} AS j0 INNER JOIN (", QuoteIdentifier(entityMap.TableName));
                 sqlBuilder.AppendLine();
                 sqlBuilder.AppendLine(innerSelect);
                 sqlBuilder.Append(") AS j1 ON (");
@@ -119,11 +119,11 @@ namespace EntityFramework.Batch
                 }
                 sqlBuilder.Append(")");
 
-                deleteCommand.CommandText = sqlBuilder.ToString().Replace("[", "").Replace("]", "");
+                deleteCommand.CommandText = sqlBuilder.ToString().Replace("[", "`").Replace("]", "`");
 
 #if NET45
                 int result = async
-                    ? await deleteCommand.ExecuteNonQueryAsync()
+                    ? await deleteCommand.ExecuteNonQueryAsync().ConfigureAwait(false)
                     : deleteCommand.ExecuteNonQuery();
 #else
                 int result = deleteCommand.ExecuteNonQuery();
@@ -230,7 +230,7 @@ namespace EntityFramework.Batch
 
                 sqlBuilder.Append("UPDATE ");
                 sqlBuilder.Append(entityMap.TableName);
-                sqlBuilder.AppendFormat(" AS j0 INNER JOIN (", entityMap.TableName);
+                sqlBuilder.AppendFormat(" AS j0 INNER JOIN (", QuoteIdentifier(entityMap.TableName));
                 sqlBuilder.AppendLine();
                 sqlBuilder.AppendLine(innerSelect);
                 sqlBuilder.Append(") AS j1 ON (");
@@ -370,7 +370,7 @@ namespace EntityFramework.Batch
 
 #if NET45
                 int result = async
-                    ? await updateCommand.ExecuteNonQueryAsync()
+                    ? await updateCommand.ExecuteNonQueryAsync().ConfigureAwait(false)
                     : updateCommand.ExecuteNonQuery();
 #else
                 int result = updateCommand.ExecuteNonQuery();
@@ -448,6 +448,11 @@ namespace EntityFramework.Batch
             }
 
             return innerJoinSql;
+        }
+
+        private static string QuoteIdentifier(string name)
+        {
+            return ("`" + name + "`");
         }
     }
 }
